@@ -145,6 +145,23 @@ router.get('/user', auth, async (req, res) => {
   }
 });
 
-
+// Update user profile
+router.put('/user', auth, async (req, res) => {
+  const { username, bio } = req.body;
+  try {
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user.id,
+      { username, bio },
+      { new: true, select: '-password' } // Exclude password field in the response
+    );
+    if (!updatedUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.json(updatedUser);
+  } catch (error) {
+    console.error('Error updating user profile:', error);
+    res.status(500).json({ message: 'Error updating user profile', error: error.message });
+  }
+});
 
 module.exports = router;
