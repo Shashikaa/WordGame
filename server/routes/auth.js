@@ -22,8 +22,13 @@ const generateToken = (user) => {
 
 // Register (Email/Password)
 router.post('/register', async (req, res) => {
+  const { email, username, password } = req.body;
+
   try {
-    const { email, username, password } = req.body;
+    // Validate input
+    if (!email || !username || !password) {
+      return res.status(400).json({ message: 'Email, username, and password are required' });
+    }
 
     // Check if user already exists by email or username
     const existingUser = await User.findOne({ $or: [{ email }, { username }] });
@@ -32,21 +37,28 @@ router.post('/register', async (req, res) => {
     }
 
     // Hash password before saving
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, 10);  // Hashing the password
 
     // Create and save new user without googleId for email/password registration
-    const user = new User({ email, username, password: hashedPassword, googleId: null });
-    await user.save();
+    const user = new User({
+      email,
+      username,
+      password: hashedPassword,  // Saving the hashed password
+      googleId: null,  // For email/password registration, googleId is null
+    });
+
+    await user.save();  // Save user to database
 
     // Generate JWT token
     const token = generateToken(user);
-
     res.status(201).json({ message: 'User registered successfully', token, user });
+
   } catch (error) {
-    console.error('Registration error:', error);  // Log full error details
+    console.error('Registration error:', error);
     res.status(500).json({ message: 'Error during registration', error: error.message });
   }
 });
+
 
 // Login (Username/Password)
 router.post('/login', async (req, res) => {
