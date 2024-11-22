@@ -21,8 +21,11 @@ function Login() {
       });
       toast.success("Login successful!"); // Show success notification
       console.log("User logged in:", response.data);
-      
-      // Store JWT token or user session if needed
+
+      // Store username in localStorage
+      localStorage.setItem("username", username); // Use the username entered by the user
+
+      // Store JWT token if needed
       localStorage.setItem("token", response.data.token);
 
       // Redirecting to MainMenu page after successful login
@@ -44,12 +47,18 @@ function Login() {
       const response = await axios.post("http://localhost:5000/auth/google-login", {
         token: credentialResponse.credential,
       });
+  
       toast.success("Google login successful!");
       console.log("Google User logged in:", response.data);
-      
-      // Store JWT token or user session if needed
-      localStorage.setItem("token", response.data.token);
-      
+  
+      // Log the entire user object for debugging
+      console.log("Google User details:", response.data.user);
+  
+      // Store username and token in localStorage
+      const username = response.data.user.username; // Ensure the user object has username
+      localStorage.setItem("username", username); // Store username here
+      localStorage.setItem("token", response.data.token); // Store token here
+  
       // Redirecting to MainMenu page after successful Google login
       navigate("/");
     } catch (error) {
@@ -57,6 +66,9 @@ function Login() {
       toast.error("Google login failed: " + (error.response?.data?.message || error.message));
     }
   };
+  
+  
+  
 
   return (
     <div className="app-container">
@@ -98,7 +110,7 @@ function Login() {
           useOneTap
         />
       </div>
-      
+
       {/* ToastContainer to render the toast notifications */}
       <ToastContainer />
     </div>

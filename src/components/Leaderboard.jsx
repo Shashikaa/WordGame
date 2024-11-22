@@ -1,30 +1,38 @@
-import React from 'react';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import '../App.css';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 
 function Leaderboard() {
   const navigate = useNavigate();
+  const [scores, setScores] = useState([]); // State to store the scores
+
+  // Fetch scores from the backend on component mount
+  useEffect(() => {
+    const fetchScores = async () => {
+      try {
+        const response = await axios.get("http://localhost:5000/api/scores/leaderboard");
+        setScores(response.data); // Store the leaderboard data
+      } catch (error) {
+        console.error("Error fetching scores:", error);
+      }
+    };
+    
+    fetchScores();
+  }, []); // Empty dependency array means this runs only once when the component mounts
 
   const handleBack = () => {
-    navigate('/'); // Navigate to the home page or any other route you specify
+    navigate("/"); // Navigate to the home page or any other route you specify
   };
-
-  const users = [
-    { name: 'User1', score: 100 },
-    { name: 'User51', score: 95 },
-    { name: 'User11', score: 90 },
-    { name: 'User5', score: 70 },
-    { name: 'You', score: 0 },
-  ];
 
   return (
     <div className="leaderboard-container">
       <button className="back-button" onClick={handleBack}>Back</button>
       <h2>Leaderboard</h2>
       <div className="score-list">
-        {users.map((user, index) => (
+        {scores.map((user, index) => (
           <div key={index} className="score-item">
-            <span>{user.name}</span>
+            <span>{index + 1}. {user.username}</span> {/* Display rank */}
             <span>{user.score}</span>
           </div>
         ))}
