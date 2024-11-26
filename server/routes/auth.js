@@ -83,6 +83,10 @@ router.post('/login', async (req, res) => {
 router.post('/google-register', async (req, res) => {
   const { token } = req.body;
   try {
+    if (!token) {
+      return res.status(400).json({ message: "Token is required" });
+    }
+
     // Verify the token with Google
     const ticket = await client.verifyIdToken({
       idToken: token,
@@ -90,30 +94,28 @@ router.post('/google-register', async (req, res) => {
     });
     const { email, name, sub: googleId } = ticket.getPayload();
 
-    // Check if the user already exists with the Google ID
+    // Check if the user already exists
     let user = await User.findOne({ googleId });
     if (user) {
       return res.status(400).json({ message: 'User already registered with this Google account' });
     }
 
-    // Check if the user already exists by email
     user = await User.findOne({ email });
     if (user) {
       return res.status(400).json({ message: 'User already exists with this email' });
     }
 
-    // Create a new user with Google ID and email
     user = new User({ email, username: name, googleId });
     await user.save();
 
-    // Generate JWT token
     const jwtToken = generateToken(user);
     res.json({ token: jwtToken, user });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error with Google registration', error: error.message });
+    console.error("Google registration error:", error.message);
+    res.status(500).json({ message: "Error with Google registration", error: error.message });
   }
 });
+
 
 // Google Login (for existing users)
 router.post('/google-login', async (req, res) => {
